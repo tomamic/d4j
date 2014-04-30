@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+
+<rule-set name="Receiver Rules"
+          xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          xs:schemaLocation="http://drools.org/rules rules.xsd
+                             http://drools.org/semantics/java java.xsd">
+
+    <rule name="Are you talking about me?" salience="20">
+
+        <!-- If the content of the ACL Message contains the word "drools"
+             in upper, lower or mixed case then we suppose that the
+             sender is talking about us.
+             A simple message is printed to the console -->
+
+        <!-- This is the object asserted in to the WorkingMemory -->
+        <parameter identifier="msg">
+            <java:class>jade.lang.acl.ACLMessage</java:class>
+        </parameter>
+
+        <!-- This is the condition for the rule to be fired -->
+        <java:condition>msg.getContent().toUpperCase().indexOf("DROOLS") != -1</java:condition>
+
+        <!-- If the rule is fired the code below is executed -->
+        <java:consequence>
+System.out.println("\nHi! I'm not that smart but I can understand");
+System.out.println("that you're talking about Drools.\n");
+        </java:consequence>
+    </rule>
+
+
+    <rule name="Thank You" salience="10">
+
+        <!-- If the performative act of the message asserted in the working
+             memory corresponds to an INFORM then a simple reply is sent
+             back to the sender. -->
+
+        <!-- This is the message object asserted in to the WorkingMemory -->
+        <parameter identifier="msg">
+            <java:class>jade.lang.acl.ACLMessage</java:class>
+        </parameter>
+
+        <!-- This is the drools agent -->
+        <parameter identifier="agent">
+            <java:class>jade.core.Agent</java:class>
+        </parameter>
+
+        <!--  If the performative is an INFORM... -->
+        <java:condition>msg.getPerformative() == jade.lang.acl.ACLMessage.INFORM</java:condition>
+
+        <!-- ...then the following code is executed. -->
+
+        <java:consequence>
+import jade.core.behaviours.*;
+import jade.lang.acl.*;
+
+ACLMessage replyMsg = new ACLMessage(ACLMessage.INFORM);
+replyMsg.setSender(agent.getAID());
+replyMsg.addReceiver(msg.getSender());
+replyMsg.setContent("Thank You for writing.");
+replyMsg.setConversationId(msg.getConversationId());
+replyMsg.setOntology(msg.getOntology());
+agent.addBehaviour(new SenderBehaviour(agent, replyMsg));
+
+drools.retractObject(msg);
+        </java:consequence>
+
+    </rule>
+
+
+    <rule name="Clean up" salience="0">
+
+        <!-- Clean up working memory, removing uneseful messages. -->
+
+        <!-- This is the message object asserted in to the WorkingMemory -->
+        <parameter identifier="msg">
+            <java:class>jade.lang.acl.ACLMessage</java:class>
+        </parameter>
+
+        <!--  No conditions. -->
+        <java:condition>true</java:condition>
+
+        <!-- ...then the following code is executed.
+
+             VERY IMPORTANT: the only statement retractObject() is necessary because
+                             when a message has been analyzed ad it isn't necessary anymore
+                             it must be retracted ( i.e. removed ) from the working memory.
+                             If the message is not removed it would satisfy the condition
+                             everytime a new message arrives and is asserted.
+                             So, the first time one reply, the second time two replies,
+                             the third time three replies and so on... -->
+        <java:consequence>
+drools.retractObject(msg);
+        </java:consequence>
+
+    </rule>
+
+</rule-set>
+

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<!-- $Id: number.drl,v 1.1 2004/09/24 11:46:21 mic Exp $  -->
+
+<rule-set name="Number Rules"
+    xmlns="http://drools.org/rules"
+    xmlns:java="http://drools.org/semantics/java">
+
+    <rule name="Higher Rule">
+
+        <parameter identifier="number">
+            <java:class>java.lang.Integer</java:class>
+        </parameter>
+
+        <java:condition>number.intValue() >= 10</java:condition>
+
+        <java:consequence>
+
+	        System.out.println("Number is greater than 10 or equal.");
+
+        </java:consequence>
+    </rule>
+
+
+    <rule name="Lower Rule">
+
+        <parameter identifier="number">
+            <java:class>java.lang.Integer</java:class>
+        </parameter>
+
+        <java:condition>number.intValue() &lt; 10</java:condition>
+
+        <java:consequence>
+	        System.out.println("Number is lower than 10.");
+        </java:consequence>
+
+    </rule>
+
+</rule-set>
+

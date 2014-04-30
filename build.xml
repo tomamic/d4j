@@ -1,0 +1,144 @@
+<project name="Drools4Jade" default="compile" basedir=".">
+
+    <!-- $Id: build.xml,v 1.7 2004/10/06 23:12:05 mic Exp $ -->
+
+    <!-- set global properties for this build -->
+    <property name="src" value="${basedir}/src"/>
+    <property name="build" value="${basedir}/classes"/>
+    <property name="lib" value="${basedir}/lib"/>
+    <property name="doc" value="${basedir}/doc"/>
+
+    <property name="3rdparty" value="${lib}/3rdparty"/>
+    <property name="jade" value="${lib}/jade"/>
+
+    <property name="base.name" value="Drools4Jade"/>
+    <property name="version" value="1.0b1"/>
+
+    <property name="jarname" value="${base.name}-${version}.jar"/>
+
+    <property name="compile.debug" value="false"/>
+    <property name="compile.deprecation" value="false"/>
+    <property name="compile.optimize" value="true"/>
+
+    <path id="project.class.path">
+
+        <!-- First of all I need the basic libs -->
+        <fileset dir="${lib}">
+            <include name="**/*.jar"/>
+        </fileset>
+
+        <!-- ...then I need the Jade libs to work... -->
+        <fileset dir="${jade}">
+            <include name="**/*.jar"/>
+        </fileset>
+
+        <!-- ...then I need all the 3rd party libs necessary to run Drools and BeanShell -->
+        <fileset dir="${3rdparty}">
+            <include name="**/*.jar"/>
+        </fileset>
+
+        <!-- ...at last I also need my code -->
+        <pathelement path="${build}"/>
+
+    </path>
+
+    <!-- ==================== Classpath Target ==================================== -->
+
+    <target name="classpath"
+        description="Echoes the classpath">
+
+        <property environment="env"/>
+        <property name="env.CLASSPATH" refid="project.class.path"/>
+        <echo>${env.CLASSPATH}</echo>
+
+    </target>
+
+    <!-- ==================== Demo Target ==================================== -->
+
+    <target name="demo"
+        description="Starts a demo JADE platform">
+
+        <java classname="jade.Boot" fork="true" classpathref="project.class.path">
+            <arg value="-gui"/>
+            <arg value="-name"/>
+            <arg value="demo"/>
+            <arg value="rulebuilder:it.unipr.aotlab.d4j.tools.rulebuilder.RuleBuilderAgent"/>
+            <arg value="da0:jade.tools.DummyAgent.DummyAgent"/>
+            <arg value="receiver:examples.rules.onto.RuleReceiver"/>
+            <arg value="compiled:examples.rules.compiled.CompiledRuleAgent"/>
+            <arg value="scripted:examples.rules.scripted.ScriptedRuleAgent"/>
+            <arg value="event:examples.event.EventAgent"/>
+        </java>
+
+    </target>
+
+    <!-- ==================== Clean Target ==================================== -->
+
+    <target name="clean"
+        description="Erases the build, lib and docs directories">
+
+        <delete includeemptydirs="true" dir="${doc}"/>
+        <delete includeemptydirs="true" dir="${build}"/>
+        <delete includeemptydirs="true" file="${lib}/${jarname}"/>
+
+    </target>
+
+    <!-- ==================== Init Target ===================================== -->
+
+    <target name="init">
+        
+		<tstamp/>
+        <mkdir dir="${build}"/>
+		
+    </target>
+
+    <!-- ==================== Compile Target ================================== -->
+
+    <target name="compile" depends="init">
+        
+		<javac
+            srcdir="${src}"
+            destdir="${build}"
+            debug="${compile.debug}"
+            deprecation="${compile.deprecation}"
+            optimize="${compile.optimize}"
+            classpathref="project.class.path">
+        </javac>
+
+        <copy todir="${build}">
+            <fileset dir="${src}"
+                excludes="**/*.java/ **/*.html/"/>
+        </copy>
+		
+    </target>
+
+    <!-- ==================== Lib Target ====================================== -->
+
+    <target name="lib" depends="clean, compile">
+        
+		<jar jarfile="${lib}/${jarname}">
+            <fileset dir="${build}" includes="**/**"/>
+        </jar>
+		
+    </target>
+
+    <!-- ==================== All Target ====================================== -->
+
+    <target name="all" depends="init, compile, lib"/>
+
+    <!-- ==================== Javadoc Target ================================== -->
+
+    <target name="javadoc" description="Javadoc API Documentation">
+
+        <javadoc sourcepath="${src}"
+            packagenames="it.unipr.aotlab.*, examples.*"
+            destdir="${doc}/api"
+            author="true"
+            version="true"
+            use="true"
+            windowtitle="The Drools4JADE Add-On API Documentation">
+        </javadoc>
+
+    </target>
+
+</project>

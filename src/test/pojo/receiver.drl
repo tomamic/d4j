@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+
+<!-- $Id: receiver.drl,v 1.1 2004/09/24 11:46:21 mic Exp $  -->
+
+<rule-set name="Receiver Rules"
+    xmlns="http://drools.org/rules"
+    xmlns:java="http://drools.org/semantics/java">
+
+    <rule name="Are you talking about me?">
+
+        <!-- If the content of the ACL Message contains the word "drools"
+             in upper, lower or mixed case then we suppose that the
+             sender is talking about us.
+             A simple message is printed to the console -->
+
+        <!-- This is the object asserted in to the WorkingMemory -->
+        <parameter identifier="msg">
+            <java:class type="jade.lang.acl.ACLMessage"/>
+        </parameter>
+
+        <!-- Here we define a local variable. Its name is "msgContent"
+             and is type is java.lang.String -->
+        <declaration identifier="msgContent">
+            <java:class type="java.lang.String"/>
+        </declaration>
+
+        <!-- For the local variable defined above its value is set here -->
+        <java:extractor target="msgContent">msg.getContent()</java:extractor>
+
+        <!-- This is the condition for the rule to be fired -->
+        <java:condition>msgContent.toUpperCase().indexOf("DROOLS") != -1</java:condition>
+
+        <!-- If the rule is fired the code below is executed -->
+        <java:consequence>
+
+                    System.out.println("\nHi! I'm not that smart but I can understand");
+                    System.out.println("that you're talking about Drools.\n");
+
+        </java:consequence>
+    </rule>
+
+
+    <rule name="Thank You">
+
+        <!-- If the performative act of the message asserted in the working
+             memory corresponds to an INFORM then a simple reply is sent
+             back to the sender. -->
+
+        <!-- This is the message object asserted in to the WorkingMemory -->
+        <parameter identifier="msg">
+            <java:class type="jade.lang.acl.ACLMessage"/>
+        </parameter>
+
+        <!-- This is the reference to the owner agent. Without this reference
+             we could not communicate with it ( e.g.: we could not add behaviours,
+             we could not send messages etc.) -->
+        <parameter identifier="myAgent">
+            <java:class type="jade.core.Agent"/>
+        </parameter>
+
+        <!-- Here we define a local variable. Its name is "msgPerformative"
+             and is type is java.lang.Integer -->
+        <declaration identifier="msgPerformative">
+            <java:class type="java.lang.Integer"/>
+        </declaration>
+
+        <!-- For the local variable defined above its value is set here
+             ( the performative of the message wrapped in an Integer() -->
+        <java:extractor target="msgPerformative">new Integer(msg.getPerformative())</java:extractor>
+
+        <!--  If the performative is an INFORM... -->
+        <java:condition>msgPerformative.intValue() == ACLMessage.INFORM</java:condition>
+
+        <!-- ...then the following code is executed.
+
+             VERY IMPORTANT: the last statement retractObject() is necessary because
+                             when a message has been analyzed ad it isn't necessary anymore
+                             it must be retracted ( i.e. removed ) from the working memory.
+                             If the message is not removed it would satisfy the condition
+                             everytime a new message arrives and is asserted.
+                             So, the first time one reply, the second time two replies,
+                             the third time three replies and so on... -->
+        <java:consequence>
+
+                    import jade.core.behaviours.*;
+                    import jade.lang.acl.*;
+
+                    ACLMessage replyMsg = new ACLMessage(ACLMessage.INFORM);
+                    replyMsg.setSender(myAgent.getAID());
+                    replyMsg.addReceiver(msg.getSender());
+                    replyMsg.setContent("Thank You for writing.");
+                    replyMsg.setConversationId(msg.getConversationId());
+                    replyMsg.setOntology(msg.getOntology());
+
+                    myAgent.addBehaviour(new SenderBehaviour(myAgent, replyMsg));
+
+                    // drools$working$memory.retractObject(msg);
+
+        </java:consequence>
+
+    </rule>
+
+</rule-set>
+
